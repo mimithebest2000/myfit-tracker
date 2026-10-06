@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MyFit Tracker</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #0f0f12;
+        color: #fff;
+        min-height: 100vh;
+    }
+
+    header {
+        background: linear-gradient(135deg, #ff4f9a, #9b2cff);
+        padding: 25px 20px;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 32px;
+        margin-bottom: 5px;
+    }
+
+    header p {
+        opacity: .9;
+    }
+
+    .container {
+        width: 95%;
+        max-width: 1100px;
+        margin: 25px auto;
+    }
+
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .card {
+        background: #1a1a20;
+        border: 1px solid #292932;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,.2);
+    }
+
+    .card h3 {
+        color: #aaa;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .big {
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .pink {
+        color: #ff5ca8;
+    }
+
+    .purple {
+        color: #b66cff;
+    }
+
+    section {
+        background: #17171c;
+        border: 1px solid #292932;
+        border-radius: 18px;
+        padding: 22px;
+        margin-bottom: 20px;
+    }
+
+    section h2 {
+        margin-bottom: 18px;
+    }
+
+    form {
+        display: grid;
+        gap: 12px;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 13px;
+        background: #101014;
+        color: white;
+        border: 1px solid #33333d;
+        border-radius: 10px;
+        outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+        border-color: #ff5ca8;
+    }
+
+    button {
+        padding: 13px 18px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #ff4f9a, #9b2cff);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        opacity: .9;
+    }
+
+    .delete {
+        background: #3a2028;
+        padding: 7px 10px;
+        font-size: 12px;
+    }
+
+    .progress-container {
+        background: #292932;
+        height: 18px;
+        border-radius: 20px;
+        overflow: hidden;
+        margin: 15px 0;
+    }
+
+    .progress {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #ff4f9a, #9b2cff);
+        transition: width .4s;
+    }
+
+    .progress-text {
+        text-align: center;
+        color: #bbb;
+    }
+
+    .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    th, td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #292932;
+        text-align: left;
+    }
+
+    th {
+        color: #ff6baa;
+    }
+
+    .empty {
+        color: #777;
+        text-align: center;
+        padding: 20px;
+    }
+
+    #chart {
+        width: 100%;
+        height: 300px;
+        margin-top: 15px;
+    }
+
+    .mood {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .mood button {
+        background: #292932;
+        font-size: 22px;
+        padding: 10px 15px;
+    }
+
+    .mood button.selected {
+        background: #ff4f9a;
+    }
+
+    @media(max-width: 700px) {
+        .grid2 {
+            grid-template-columns: 1fr;
+        }
+
+        header h1 {
+            font-size: 26px;
+        }
+
+        .big {
+            font-size: 25px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>💗 MyFit Tracker</h1>
+    <p>Ton espace personnel de suivi</p>
+</header>
+
+<div class="container">
+
+    <!-- DASHBOARD -->
+    <div class="dashboard">
+
+        <div class="card">
+            <h3>POIDS ACTUEL</h3>
+            <div class="big pink" id="currentWeight">-- kg</div>
+        </div>
+
+        <div class="card">
+            <h3>OBJECTIF</h3>
+            <div class="big purple">60 kg</div>
+        </div>
+
+        <div class="card">
+            <h3>POIDS PERDU</h3>
+            <div class="big" id="lostWeight">0 kg</div>
+        </div>
+
+        <div class="card">
+            <h3>CALORIES DU JOUR</h3>
+            <div class="big" id="todayCalories">0 kcal</div>
+        </div>
+
+        <div class="card">
+            <h3>VÉLO</h3>
+            <div class="big" id="todayBike">0 km</div>
+        </div>
+
+        <div class="card">
+            <h3>COURSE</h3>
+            <div class="big" id="todayRun">0 km</div>
+        </div>
+
+    </div>
+
+
+    <!-- OBJECTIF -->
+    <section>
+
+        <h2>🎯 Progression vers 60 kg</h2>
+
+        <div class="progress-container">
+            <div class="progress" id="progressBar"></div>
+        </div>
+
+        <div class="progress-text" id="progressText">
+            Ajoute ton premier poids pour commencer.
+        </div>
+
+    </section>
+
+
+    <div class="grid2">
+
+        <!-- POIDS -->
+        <section>
+
+            <h2>⚖️ Ajouter un poids</h2>
+
+            <form id="weightForm">
+
+                <input
+                    type="date"
+                    id="weightDate"
+                    required
+                >
+
+                <input
+                    type="number"
+                    id="weightValue"
+                    placeholder="Poids en kg"
+                    step="0.1"
+                    min="30"
+                    max="250"
+                    required
+                >
+
+                <button type="submit">
+                    Ajouter le poids
+                </button>
+
+            </form>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Poids</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody id="weightList"></tbody>
+            </table>
+
+        </section>
+
+
+        <!-- ACTIVITÉ -->
+        <section>
+
+            <h2>🏃 Activité</h2>
+
+            <form id="activityForm">
+
+                <input
+                    type="date"
+                    id="activityDate"
+                    required
+                >
+
+                <select id="activityType">
+
+                    <option value="bike">
+                        🚴 Vélo
+                    </option>
+
+                    <option value="run">
+                        🏃 Course
+                    </option>
+
+                    <option value="walk">
+                        🚶 Marche
+                    </option>
+
+                    <option value="other">
+                        🏋️ Autre
+                    </option>
+
+                </select>
+
+                <input
+                    type="number"
+                    id="activityDistance"
+                    placeholder="Distance en km"
+                    step="0.1"
+                    min="0"
+                    required
+                >
+
+                <input
+                    type="number"
+                    id="activityMinutes"
+                    placeholder="Durée en minutes"
+                    min="0"
+                >
+
+                <button type="submit">
+                    Ajouter activité
+                </button>
+
+            </form>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Distance</th>
+                        <th>Durée</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody id="activityList"></tbody>
+            </table>
+
+        </section>
+
+    </div>
+
+
+    <!-- ALIMENTS -->
+    <section>
+
+        <h2>🍽️ Aliments</h2>
+
+        <form id="foodForm">
+
+            <input
+                type="date"
+                id="foodDate"
+                required
+            >
+
+            <input
+                type="text"
+                id="foodName"
+                placeholder="Ex : Poulet, riz, yaourt..."
+                required
+            >
+
+            <input
+                type="number"
+                id="foodCalories"
+                placeholder="Calories"
+                min="0"
+                required
+            >
+
+            <input
+                type="number"
+                id="foodProtein"
+                placeholder="Protéines (g), facultatif"
+                min="0"
+                step="0.1"
+            >
+
+            <button type="submit">
+                Ajouter l'aliment
+            </button>
+
+        </form>
+
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Aliment</th>
+                    <th>Calories</th>
+                    <th>Protéines</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody id="foodList"></tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- GRAPHIQUE -->
+    <section>
+
+        <h2>📈 Évolution du poids</h2>
+
+        <canvas id="chart"></canvas>
+
+    </section>
+
+
+    <!-- JOURNAL -->
+    <section>
+
+        <h2>📝 Mon journal</h2>
+
+        <textarea
+            id="journal"
+            rows="5"
+            placeholder="Comment je me sens aujourd'hui ? Énergie, motivation, sommeil..."
+        ></textarea>
+
+        <br><br>
+
+        <h3>Comment tu te sens ?</h3>
+
+        <br>
+
+        <div class="mood">
+
+            <button onclick="setMood('😄')" type="button">😄</button>
+            <button onclick="setMood('🙂')" type="button">🙂</button>
+            <button onclick="setMood('😐')" type="button">😐</button>
+            <button onclick="setMood('😕')" type="button">😕</button>
+            <button onclick="setMood('😴')" type="button">😴</button>
+
+        </div>
+
+        <br>
+
+        <button onclick="saveJournal()">
+            Enregistrer mon journal
+        </button>
+
+    </section>
+
+
+    <!-- RESET -->
+    <section>
+
+        <h2>⚙️ Données</h2>
+
+        <button onclick="exportData()">
+            💾 Exporter mes données
+        </button>
+
+        <button
+            onclick="resetData()"
+            style="background:#42212b; margin-left:10px;"
+        >
+            🗑️ Tout supprimer
+        </button>
+
+    </section>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   CONFIGURATION
+===================================================== */
+
+const GOAL_WEIGHT = 60;
+
+let data = JSON.parse(
+    localStorage.getItem("myFitData")
+) || {
+
+    weights: [],
+    foods: [],
+    activities: [],
+    journal: "",
+    mood: ""
+
+};
+
+
+/* =====================================================
+   DATE DU JOUR
+===================================================== */
+
+const today = new Date()
+    .toISOString()
+    .split("T")[0];
+
+document.getElementById("weightDate").value = today;
+document.getElementById("foodDate").value = today;
+document.getElementById("activityDate").value = today;
+
+
+/* =====================================================
+   SAUVEGARDE
+===================================================== */
+
+function saveData() {
+
+    localStorage.setItem(
+        "myFitData",
+        JSON.stringify(data)
+    );
+
+}
+
+
+/* =====================================================
+   POIDS
+===================================================== */
+
+document.getElementById("weightForm")
+.addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
+    const date =
+        document.getElementById("weightDate").value;
+
+    const weight =
+        parseFloat(
+            document.getElementById("weightValue").value
+        );
+
+    data.weights.push({
+        id: Date.now(),
+        date: date,
+        weight: weight
+    });
+
+    saveData();
+
+    this.reset();
+
+    document.getElementById("weightDate").value = today;
+
+    render();
+
+});
+
+
+function deleteWeight(id) {
+
+    data.weights =
+        data.weights.filter(
+            item => item.id !== id
+        );
+
+    saveData();
+    render();
+
+}
+
+
+/* =====================================================
+   ALIMENTS
+===================================================== */
+
+document.getElementById("foodForm")
+.addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
+    const food = {
+
+        id: Date.now(),
+
+        date:
+            document.getElementById("foodDate").value,
+
+        name:
+            document.getElementById("foodName").value,
+
+        calories:
+            Number(
+                document.getElementById("foodCalories").value
+            ),
+
+        protein:
+            Number(
+                document.getElementById("foodProtein").value
+            ) || 0
+
+    };
+
+    data.foods.push(food);
+
+    saveData();
+
+    this.reset();
+
+    document.getElementById("foodDate").value = today;
+
+    render();
+
+});
+
+
+function deleteFood(id) {
+
+    data.foods =
+        data.foods.filter(
+            item => item.id !== id
+        );
+
+    saveData();
+    render();
+
+}
+
+
+/* =====================================================
+   ACTIVITÉS
+===================================================== */
+
+document.getElementById("activityForm")
+.addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
+    const activity = {
+
+        id: Date.now(),
+
+        date:
+            document.getElementById("activityDate").value,
+
+        type:
+            document.getElementById("activityType").value,
+
+        distance:
+            Number(
+                document.getElementById("activityDistance").value
+            ),
+
+        minutes:
+            Number(
+                document.getElementById("activityMinutes").value
+            ) || 0
+
+    };
+
+    data.activities.push(activity);
+
+    saveData();
+
+    this.reset();
+
+    document.getElementById("activityDate").value = today;
+
+    render();
+
+});
+
+
+function deleteActivity(id) {
+
+    data.activities =
+        data.activities.filter(
+            item => item.id !== id
+        );
+
+    saveData();
+    render();
+
+}
+
+
+/* =====================================================
+   JOURNAL
+===================================================== */
+
+function setMood(mood) {
+
+    data.mood = mood;
+
+    document.querySelectorAll(".mood button")
+        .forEach(btn => {
+
+            btn.classList.remove("selected");
+
+            if (btn.textContent === mood) {
+                btn.classList.add("selected");
+            }
+
+        });
+
+}
+
+
+function saveJournal() {
+
+    data.journal =
+        document.getElementById("journal").value;
+
+    saveData();
+
+    alert("Journal enregistré.");
+
+}
+
+
+/* =====================================================
+   RENDU PRINCIPAL
+===================================================== */
+
+function render() {
+
+    renderWeights();
+    renderFoods();
+    renderActivities();
+    updateDashboard();
+    updateProgress();
+    drawChart();
+
+    document.getElementById("journal").value =
+        data.journal || "";
+
+}
+
+
+/* =====================================================
+   LISTE POIDS
+===================================================== */
+
+function renderWeights() {
+
+    const list =
+        document.getElementById("weightList");
+
+    list.innerHTML = "";
+
+    const sorted =
+        [...data.weights]
+        .sort((a,b) =>
+            new Date(b.date) -
+            new Date(a.date)
+        );
+
+    sorted.forEach(item => {
+
+        list.innerHTML += `
+
+            <tr>
+
+                <td>${formatDate(item.date)}</td>
+
+                <td>
+                    <strong>
+                        ${item.weight.toFixed(1)} kg
+                    </strong>
+                </td>
+
+                <td>
+
+                    <button
+                        class="delete"
+                        onclick="deleteWeight(${item.id})"
+                    >
+                        Supprimer
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   LISTE ALIMENTS
+===================================================== */
+
+function renderFoods() {
+
+    const list =
+        document.getElementById("foodList");
+
+    list.innerHTML = "";
+
+    const foodsToday =
+        data.foods.filter(
+            item => item.date === today
+        );
+
+    if (foodsToday.length === 0) {
+
+        list.innerHTML = `
+            <tr>
+                <td colspan="4" class="empty">
+                    Aucun aliment enregistré aujourd'hui.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+    foodsToday.forEach(item => {
+
+        list.innerHTML += `
+
+            <tr>
+
+                <td>${escapeHTML(item.name)}</td>
+
+                <td>${item.calories} kcal</td>
+
+                <td>${item.protein} g</td>
+
+                <td>
+
+                    <button
+                        class="delete"
+                        onclick="deleteFood(${item.id})"
+                    >
+                        Supprimer
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   LISTE ACTIVITÉS
+===================================================== */
+
+function renderActivities() {
+
+    const list =
+        document.getElementById("activityList");
+
+    list.innerHTML = "";
+
+    const activitiesToday =
+        data.activities.filter(
+            item => item.date === today
+        );
+
+    if (activitiesToday.length === 0) {
+
+        list.innerHTML = `
+            <tr>
+                <td colspan="4" class="empty">
+                    Aucune activité aujourd'hui.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+    activitiesToday.forEach(item => {
+
+        const names = {
+
+            bike: "🚴 Vélo",
+            run: "🏃 Course",
+            walk: "🚶 Marche",
+            other: "🏋️ Autre"
+
+        };
+
+        list.innerHTML += `
+
+            <tr>
+
+                <td>${names[item.type]}</td>
+
+                <td>${item.distance} km</td>
+
+                <td>${item.minutes} min</td>
+
+                <td>
+
+                    <button
+                        class="delete"
+                        onclick="deleteActivity(${item.id})"
+                    >
+                        Supprimer
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+function updateDashboard() {
+
+    const sorted =
+        [...data.weights]
+        .sort((a,b) =>
+            new Date(a.date) -
+            new Date(b.date)
+        );
+
+    const current =
+        sorted.length
+        ? sorted[sorted.length - 1].weight
+        : null;
+
+    const first =
+        sorted.length
+        ? sorted[0].weight
+        : null;
+
+    document.getElementById("currentWeight")
+        .textContent =
+        current !== null
+        ? current.toFixed(1) + " kg"
+        : "-- kg";
+
+    document.getElementById("lostWeight")
+        .textContent =
+        first !== null && current !== null
+        ? Math.max(0, first - current).toFixed(1) + " kg"
+        : "0 kg";
+
+
+    const calories =
+        data.foods
+        .filter(item => item.date === today)
+        .reduce(
+            (total,item) =>
+            total + item.calories,
+            0
+        );
+
+    document.getElementById("todayCalories")
+        .textContent =
+        calories + " kcal";
+
+
+    const bike =
+        data.activities
+        .filter(
+            item =>
+            item.date === today &&
+            item.type === "bike"
+        )
+        .reduce(
+            (total,item) =>
+            total + item.distance,
+            0
+        );
+
+    const run =
+        data.activities
+        .filter(
+            item =>
+            item.date === today &&
+            item.type === "run"
+        )
+        .reduce(
+            (total,item) =>
+            total + item.distance,
+            0
+        );
+
+    document.getElementById("todayBike")
+        .textContent =
+        bike.toFixed(1) + " km";
+
+    document.getElementById("todayRun")
+        .textContent =
+        run.toFixed(1) + " km";
+
+}
+
+
+/* =====================================================
+   PROGRESSION
+===================================================== */
+
+function updateProgress() {
+
+    if (data.weights.length === 0) {
+
+        document.getElementById("progressBar")
+            .style.width = "0%";
+
+        document.getElementById("progressText")
+            .textContent =
+            "Ajoute ton premier poids pour commencer.";
+
+        return;
+
+    }
+
+    const sorted =
+        [...data.weights]
+        .sort((a,b) =>
+            new Date(a.date) -
+            new Date(b.date)
+        );
+
+    const start =
+        sorted[0].weight;
+
+    const current =
+        sorted[sorted.length - 1].weight;
+
+    const total =
+        start - GOAL_WEIGHT;
+
+    const lost =
+        start - current;
+
+    let percentage =
+        (lost / total) * 100;
+
+    percentage =
+        Math.max(
+            0,
+            Math.min(100, percentage)
+        );
+
+    document.getElementById("progressBar")
+        .style.width =
+        percentage + "%";
+
+    document.getElementById("progressText")
+        .textContent =
+        `${percentage.toFixed(0)}% de progression — ${current.toFixed(1)} kg actuellement, objectif ${GOAL_WEIGHT} kg.`;
+
+}
+
+
+/* =====================================================
+   GRAPHIQUE
+===================================================== */
+
+function drawChart() {
+
+    const canvas =
+        document.getElementById("chart");
+
+    const ctx =
+        canvas.getContext("2d");
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+    canvas.width =
+        rect.width * dpr;
+
+    canvas.height =
+        rect.height * dpr;
+
+    ctx.scale(dpr,dpr);
+
+    const width = rect.width;
+    const height = rect.height;
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    const sorted =
+        [...data.weights]
+        .sort((a,b) =>
+            new Date(a.date) -
+            new Date(b.date)
+        );
+
+    if (sorted.length < 2) {
+
+        ctx.fillStyle = "#777";
+
+        ctx.font = "16px Arial";
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            "Ajoute au moins deux pesées pour voir ton évolution.",
+            width / 2,
+            height / 2
+        );
+
+        return;
+
+    }
+
+    const padding = 45;
+
+    const weights =
+        sorted.map(item => item.weight);
+
+    const min =
+        Math.min(...weights, GOAL_WEIGHT) - 2;
+
+    const max =
+        Math.max(...weights) + 2;
+
+
+    function x(i) {
+
+        return padding +
+            (i / (sorted.length - 1)) *
+            (width - padding * 2);
+
+    }
+
+
+    function y(weight) {
+
+        return height -
+            padding -
+            ((weight - min) /
+            (max - min)) *
+            (height - padding * 2);
+
+    }
+
+
+    /* axes */
+
+    ctx.strokeStyle = "#333";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        padding,
+        padding
+    );
+
+    ctx.lineTo(
+        padding,
+        height - padding
+    );
+
+    ctx.lineTo(
+        width - padding,
+        height - padding
+    );
+
+    ctx.stroke();
+
+
+    /* objectif */
+
+    ctx.setLineDash([6,6]);
+
+    ctx.strokeStyle = "#ff5ca8";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        padding,
+        y(GOAL_WEIGHT)
+    );
+
+    ctx.lineTo(
+        width - padding,
+        y(GOAL_WEIGHT)
+    );
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+
+    /* courbe */
+
+    ctx.strokeStyle = "#b66cff";
+
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+
+    sorted.forEach((item,i) => {
+
+        if (i === 0) {
+
+            ctx.moveTo(
+                x(i),
+                y(item.weight)
+            );
+
+        } else {
+
+            ctx.lineTo(
+                x(i),
+                y(item.weight)
+            );
+
+        }
+
+    });
+
+    ctx.stroke();
+
+
+    /* points */
+
+    sorted.forEach((item,i) => {
+
+        ctx.fillStyle = "#ff5ca8";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x(i),
+            y(item.weight),
+            5,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+    });
+
+}
+
+
+/* =====================================================
+   EXPORT
+===================================================== */
+
+function exportData() {
+
+    const blob =
+        new Blob(
+            [
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            ],
+            {
+                type:
+                "application/json"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+        "myfit-donnees.json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/* =====================================================
+   SUPPRESSION
+===================================================== */
+
+function resetData() {
+
+    if (
+        confirm(
+            "Supprimer toutes tes données ? Cette action est irréversible."
+        )
+    ) {
+
+        localStorage.removeItem(
+            "myFitData"
+        );
+
+        location.reload();
+
+    }
+
+}
+
+
+/* =====================================================
+   UTILITAIRES
+===================================================== */
+
+function formatDate(date) {
+
+    return new Date(date)
+        .toLocaleDateString("fr-FR");
+
+}
+
+
+function escapeHTML(text) {
+
+    return text
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+/* =====================================================
+   INITIALISATION
+===================================================== */
+
+render();
+
+window.addEventListener(
+    "resize",
+    drawChart
+);
+
+</script>
+
+</body>
+</html>
